@@ -47,14 +47,6 @@ main() {
 
   # Favor docker if installed. Fall back to podman. 
   # Override by setting CONTAINER_COMMAND
-
-DOCKER_VERSION_RC := $(shell svn info . 2> /dev/null; echo $$?)
-ifeq ($(SVN_INFO),1)
-    $(error "Not an SVN repo...")
-endif
-
-
-
   docker -v > /dev/null 2>&1 && true
   if [[ $? -eq 0 ]]; then
     CONTAINER_COMMAND=${CONTAINER_COMMAND:="docker"}
