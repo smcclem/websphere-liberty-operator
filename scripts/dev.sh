@@ -47,6 +47,14 @@ main() {
 
   # Favor docker if installed. Fall back to podman. 
   # Override by setting CONTAINER_COMMAND
+
+DOCKER_VERSION_RC := $(shell svn info . 2> /dev/null; echo $$?)
+ifeq ($(SVN_INFO),1)
+    $(error "Not an SVN repo...")
+endif
+
+
+
   docker -v > /dev/null 2>&1 && true
   if [[ $? -eq 0 ]]; then
     CONTAINER_COMMAND=${CONTAINER_COMMAND:="docker"}
@@ -106,7 +114,10 @@ main() {
 # Setup an OCP cluster to use the private registry, insecurely (testing only)
 #############################################################################
 init_cluster() {
+    # Add route for registry
     oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge
+    # Allow insecure registry images on the cluster
+    oc patch image.config.openshift.io/cluster  --patch '{"spec":{"registrySources":{"insecureRegistries":["'$OCP_REGISTRY_URL'"]}}}' --type=merge
     oc project $NAMESPACE > /dev/null 2>&1 && true
     if [[ $? -ne 0 ]]; then
       oc new-project $NAMESPACE 
